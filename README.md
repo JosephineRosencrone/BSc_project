@@ -1,4 +1,4 @@
-# BSc project - video rendering app
+## BSc project - video rendering app
 
 An application for applying a RGB color filter to video. 
 
@@ -10,18 +10,17 @@ This app has been developed as part of my Bachelor project at the Technical Univ
 
 This project uses python. 
 
-'''python
-
+```python
 python -m venv .venv
-pip install pywin32
-'''
+pip install moviepy
+pip install python-opencv
+```
 
 # Usage
 
-'''python
-
+```python
 python -m rendering_app
-'''
+```
 
 # Authors
 

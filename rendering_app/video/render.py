@@ -2,7 +2,7 @@ import time
 from tkinter import Tk, filedialog
 import cv2
 import numpy as np
-from moviepy import VideoFileClip,ImageSequenceClip  # Import MoviePy
+from moviepy import VideoFileClip  # Import MoviePy
 
 
 from rendering_app.scripts.filter import Filter_With_Config
@@ -77,33 +77,40 @@ class Video_render:
         print("Processing complete!")
         
         # DISPLAY VIDEO
-        cap = cv2.VideoCapture("temp_output.mp4")
-        windowName = "Filtered video"
-        cv2.namedWindow(windowName)
         
-        # Scale video dimensions for display
-        scale_w = 1280 / frame_width
-        scale_h = 720 / frame_height
-        scale = min(scale_w, scale_h)
-        display_width = int(frame_width * scale)
-        display_height = int(frame_height * scale)
+        display_output = input("Display rendered video? (y/n): ").strip().lower()
+        if display_output == "y":
+            # C
+            cap = cv2.VideoCapture("temp_output.mp4")
+            windowName = "Rendered video"
+            cv2.namedWindow(windowName)
+            
+            # Scale video dimensions for display
+            scale_w = 1280 / frame_width
+            scale_h = 720 / frame_height
+            scale = min(scale_w, scale_h)
+            display_width = int(frame_width * scale)
+            display_height = int(frame_height * scale)
 
-        print("Now displaying the processed video. Press 'q' to quit.")
-        
-        while cap.isOpened():
-            ret, frame = cap.read()
-            if not ret:
-                break  # Stop when the video ends
+            print("Now displaying the processed video. Press 'q' to quit.")
+            
+            while cap.isOpened():
+                ret, frame = cap.read() # Stop video when it ends
+                if not ret:
+                    break 
+                
+                display_frame = cv2.resize(frame, (display_width, display_height))
+                cv2.imshow(windowName, display_frame)
 
-            display_frame = cv2.resize(frame, (display_width, display_height))
-            cv2.imshow(windowName, display_frame)
+                if cv2.waitKey(int(1000 / fps)) & 0xFF == ord("q"):  # Stop video if 'q' is pressed
+                    print("Playback stopped.")
+                    break
 
-            if cv2.waitKey(int(1000 / fps)) & 0xFF == ord("q"):  # Wait for 'q' key to quit
-                print("Playback stopped.")
-                break
+            cap.release()  # Release video file
+            cv2.destroyAllWindows()  # Close all OpenCV windows
+        else:
+            print("Video not displayed.")
 
-        cap.release()  # Release the video file
-        cv2.destroyAllWindows()  # Close all OpenCV windows
     
         # SAVE VIDEO
         save_output = input("Save filtered video? (y/n): ").strip().lower()

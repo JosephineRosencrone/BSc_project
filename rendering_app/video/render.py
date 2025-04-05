@@ -47,6 +47,7 @@ class Video_render:
         print(f"Video width: {frame_width}, Video height: {frame_height}, FPS: {fps}")
 
         # PROCESS VIDEO
+        start_time = time.time()
         output_video = None
         print("Processing video...")
         
@@ -74,10 +75,11 @@ class Video_render:
         if output_video:
             output_video.release()
 
-        print("Processing complete!")
+        end_time = time.time()
+        processing_time = end_time - start_time
+        print(f"Processing complete! Video rendered in {processing_time:.2f} seconds")
         
         # DISPLAY VIDEO
-        
         display_output = input("Display rendered video? (y/n): ").strip().lower()
         if display_output == "y":
             # C

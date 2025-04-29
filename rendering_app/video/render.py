@@ -44,7 +44,11 @@ class Video_render:
         frame_width = int(cap.get(3))
         frame_height = int(cap.get(4))
         fps = cap.get(cv2.CAP_PROP_FPS)
-        print(f"Video width: {frame_width}, Video height: {frame_height}, FPS: {fps}")
+        frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        total_seconds = int(frame_count / fps)
+        minutes = total_seconds // 60
+        seconds = total_seconds % 60
+        print(f"Video width: {frame_width}, Video height: {frame_height}, Video length: {minutes:02d}:{seconds:02d} (mm:ss), FPS: {fps}")
 
         # PROCESS VIDEO
         start_time = time.time()
@@ -82,29 +86,39 @@ class Video_render:
         # DISPLAY VIDEO
         display_output = input("Display rendered video? (y/n): ").strip().lower()
         if display_output == "y":
-            # C
-            cap = cv2.VideoCapture("temp_output.mp4")
+            cap = cv2.VideoCapture("temp_output.mp4", cv2.CAP_FFMPEG)
             windowName = "Rendered video"
             cv2.namedWindow(windowName)
             
-            # Scale video dimensions for display
-            scale_w = 1280 / frame_width
-            scale_h = 720 / frame_height
-            scale = min(scale_w, scale_h)
-            display_width = int(frame_width * scale)
-            display_height = int(frame_height * scale)
+            # Scale video
+            target_size = np.array([1280, 720])
+            original_size = np.array([frame_width, frame_height])
+            scale = np.min(target_size / original_size)
+            display_size = (original_size * scale).astype(int)
+            display_width, display_height = display_size
+
+            # Playback same speed as original
+            frame_duration = 1 / fps
 
             print("Now displaying the processed video. Press 'q' to quit.")
             
             while cap.isOpened():
-                ret, frame = cap.read() # Stop video when it ends
+                frame_start = time.time()
+                
+                ret, frame = cap.read()
                 if not ret:
                     break 
                 
-                display_frame = cv2.resize(frame, (display_width, display_height))
+                display_frame = cv2.resize(frame, (display_width, display_height), interpolation=cv2.INTER_LINEAR)
                 cv2.imshow(windowName, display_frame)
 
-                if cv2.waitKey(int(1000 / fps)) & 0xFF == ord("q"):  # Stop video if 'q' is pressed
+                elapsed = time.time() - frame_start
+                wait_time_ms = max(1, int(round((frame_duration - elapsed) * 1000)))
+
+                # Debugging
+                # print(f"Frame time: {elapsed:.4f}s, Target: {frame_duration:.4f}s, Wait: {wait_time_ms}ms")
+
+                if cv2.waitKey(wait_time_ms) & 0xFF == ord("q"):
                     print("Playback stopped.")
                     break
 
@@ -113,7 +127,7 @@ class Video_render:
         else:
             print("Video not displayed.")
 
-    
+
         # SAVE VIDEO
         save_output = input("Save filtered video? (y/n): ").strip().lower()
         if save_output == "y":

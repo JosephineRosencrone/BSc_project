@@ -2,11 +2,12 @@ import time
 from tkinter import Tk, filedialog
 import cv2
 import numpy as np
-from moviepy import VideoFileClip  # Import MoviePy
 
-from rendering_app.scripts.display import display_video
 from rendering_app.scripts.filter import Filter_With_Config
 from rendering_app.scripts.import_config import FilterSettings
+from rendering_app.scripts.process import process_video
+from rendering_app.scripts.display import display_video
+from rendering_app.scripts.output import save_output_video
 
 
 class Video_render:
@@ -16,6 +17,7 @@ class Video_render:
         root = Tk()
         root.withdraw()
         
+        # INPUT FILES
         self.video_path = filedialog.askopenfilename(title="Select video file")
         if not self.video_path:  # User canceled file selection
             print("No video file selected. Exiting...")
@@ -32,62 +34,22 @@ class Video_render:
         filter_settings = FilterSettings.import_config(file_path)
         self.filter = Filter_With_Config(filter_settings=filter_settings)
 
-
     def run(self):
-        # LOAD VIDEO
-        cap = cv2.VideoCapture(self.video_path)
-        if not cap.isOpened(): # Video file not found
-            print("Error: Could not open video.")
+        # LOAD AND PROCESS VIDEO
+        output_path, resolution, fps = process_video(
+            self.video_path,
+            "temp_output.mp4",
+            self.filter.apply_to_image
+        )
+        if output_path is None:
+            print("Processing failed.")
             return
-
-        # Video properties
-        frame_width = int(cap.get(3))
-        frame_height = int(cap.get(4))
-        fps = cap.get(cv2.CAP_PROP_FPS)
-        frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-        total_seconds = int(frame_count / fps)
-        minutes = total_seconds // 60
-        seconds = total_seconds % 60
-        print(f"Video width: {frame_width}, Video height: {frame_height}, Video length: {minutes:02d}:{seconds:02d} (mm:ss), FPS: {fps}")
-
-        # PROCESS VIDEO
-        start_time = time.time()
-        output_video = None
-        print("Processing video...")
-        
-        try: 
-            while cap.isOpened():
-                ret, frame = cap.read()
-                if not ret:
-                    break
-                
-                try:
-                    frame_filtered = self.filter.apply_to_image(frame)
-                except Exception as e:
-                    print(f"Error applying filter: {e}")
-                    continue
-
-                # Initialize video writer only once (first frame)
-                if output_video is None:
-                    fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # Codec for MP4
-                    output_video = cv2.VideoWriter("temp_output.mp4", fourcc, fps, (frame_width, frame_height))
-
-                output_video.write(frame_filtered)  # Write directly to file
-
-        finally:
-            cap.release()
-        if output_video:
-            output_video.release()
-
-        end_time = time.time()
-        processing_time = end_time - start_time
-        print(f"Processing complete! Video rendered in {processing_time:.2f} seconds")
         
         
         # DISPLAY VIDEO
         display_output = input("Display rendered video? (y/n): ").strip().lower()
         if display_output == "y":
-            display_video("temp_output.mp4", (frame_width, frame_height), fps)
+            display_video(output_path, resolution, fps)
         else:
             print("Video not displayed.")
 
@@ -95,21 +57,7 @@ class Video_render:
         # SAVE VIDEO
         save_output = input("Save filtered video? (y/n): ").strip().lower()
         if save_output == "y":
-            output_path = filedialog.asksaveasfilename(
-                defaultextension=".mp4", filetypes=[("MP4 files", "*.mp4")]
-            )
-            if output_path:
-                print("Saving video...")
-
-                # Load the processed video and original audio
-                processed_clip = VideoFileClip("temp_output.mp4")
-                original_clip = VideoFileClip(self.video_path)
-
-                # Set the audio of the processed video to the original audio
-                final_clip = processed_clip.with_audio(original_clip.audio)
-                final_clip.write_videofile(output_path, codec="libx264", audio_codec="aac")
-
-                print(f"Video saved at {output_path}")
+            save_output_video(output_path, self.video_path)
         else:
             print("Video not saved.")
             

@@ -33,58 +33,35 @@ class Filter_With_Config:
     def blur_color_channel(self, color_channel_data, color_channel_id, radius):
         color_channel_blur = color_channel_data
 
+        """""
         # If sigma is 0 don't apply filter
         if self.filter_settings.settings[color_channel_id].sigma == 0:
             return color_channel_data
-
+        """""
+        
+        # Find filter type
+        filter_type = self.filter_settings.settings[color_channel_id].filterType
+        
         # Get kernel size
         kernel_size = self.filter_settings.settings[color_channel_id].kernelSize
         if isinstance(kernel_size, int):
             kernel_size = (kernel_size, kernel_size) # Convert to tuple
         if kernel_size[0] <= 0 or kernel_size[1] <= 0:  
             raise ValueError("Kernel size must be greater than 0 in both dimensions")
+        if filter_type == "gauss":
+            kernel_size = tuple((ks if ks % 2 == 1 else ks + 1) for ks in kernel_size)
 
         # Apply the filter multiple times if specified by the timeFiltersApllied value
         for _ in range(self.filter_settings.settings[color_channel_id].timeFiltersApllied):
-            blur = cv2.blur(color_channel_blur, kernel_size)
-            color_channel_blur = blur
-            
-            
-            # For mouse filter
-            """ if (
-                self.filter_settings.settings[color_channel_id].filterType
-                == "gauss"
-            ):
-                # Create circular mask around the cursors position
-                _, _, (cursorX, cursorY) = win32gui.GetCursorInfo()
-                height, width = color_channel_data.shape[:2]
-                mask = np.zeros((height, width), dtype=np.uint8)
-                cv2.circle(mask, (cursorX, cursorY), radius, 255, -1)
-
-                # Apply blur only outside the circular mask
-                blur = cv2.GaussianBlur(
-                    cv2.bitwise_and(
-                        color_channel_blur,
-                        color_channel_blur,
-                        mask=cv2.bitwise_not(mask),
-                    ),
-                    (kernel_value, kernel_value),
-                    self.filter_settings.settings[color_channel_id].sigma,
-                    None,
-                    self.filter_settings.settings[color_channel_id].sigma2,
-                )
-                color_channel_blur = cv2.bitwise_or(
-                    blur,
-                    cv2.bitwise_and(
-                        color_channel_blur, color_channel_blur, mask=mask
-                    ),
-                )
- 
-            elif (
-                self.filter_settings.settings[color_channel_id].filterType
-                == "boxBlur"
-            ):
-            """
+            if filter_type == "boxBlur":
+                blur = cv2.blur(color_channel_blur, kernel_size)
+                color_channel_blur = blur
+            elif filter_type == "gauss":
+                blur = cv2.GaussianBlur(color_channel_blur, kernel_size, self.filter_settings.settings[color_channel_id].sigma)
+                color_channel_blur = blur
+            else :
+                raise ValueError(f"Unknown filter type: {filter_type}")
+        
 
         # If the filter should sharpen and not blur the image, it is done here
         if self.filter_settings.settings[
@@ -98,3 +75,5 @@ class Filter_With_Config:
             )
 
         return color_channel_blur
+
+

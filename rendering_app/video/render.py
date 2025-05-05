@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 from moviepy import VideoFileClip  # Import MoviePy
 
-
+from rendering_app.scripts.display import display_video
 from rendering_app.scripts.filter import Filter_With_Config
 from rendering_app.scripts.import_config import FilterSettings
 
@@ -83,47 +83,11 @@ class Video_render:
         processing_time = end_time - start_time
         print(f"Processing complete! Video rendered in {processing_time:.2f} seconds")
         
+        
         # DISPLAY VIDEO
         display_output = input("Display rendered video? (y/n): ").strip().lower()
         if display_output == "y":
-            cap = cv2.VideoCapture("temp_output.mp4", cv2.CAP_FFMPEG)
-            windowName = "Rendered video"
-            cv2.namedWindow(windowName)
-            
-            # Scale video
-            target_size = np.array([1280, 720])
-            original_size = np.array([frame_width, frame_height])
-            scale = np.min(target_size / original_size)
-            display_size = (original_size * scale).astype(int)
-            display_width, display_height = display_size
-
-            # Playback same speed as original
-            frame_duration = 1 / fps
-
-            print("Now displaying the processed video. Press 'q' to quit.")
-            
-            while cap.isOpened():
-                frame_start = time.time()
-                
-                ret, frame = cap.read()
-                if not ret:
-                    break 
-                
-                display_frame = cv2.resize(frame, (display_width, display_height), interpolation=cv2.INTER_LINEAR)
-                cv2.imshow(windowName, display_frame)
-
-                elapsed = time.time() - frame_start
-                wait_time_ms = max(1, int(round((frame_duration - elapsed) * 1000)))
-
-                # Debugging
-                # print(f"Frame time: {elapsed:.4f}s, Target: {frame_duration:.4f}s, Wait: {wait_time_ms}ms")
-
-                if cv2.waitKey(wait_time_ms) & 0xFF == ord("q"):
-                    print("Playback stopped.")
-                    break
-
-            cap.release()  # Release video file
-            cv2.destroyAllWindows()  # Close all OpenCV windows
+            display_video("temp_output.mp4", (frame_width, frame_height), fps)
         else:
             print("Video not displayed.")
 

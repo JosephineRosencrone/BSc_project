@@ -22,7 +22,7 @@ class Filter_With_Config:
         green = self.blur_color_channel(green, 1, nonBlurRadius)
         blue = self.blur_color_channel(blue, 0, nonBlurRadius)
 
-        # Create a new image with the blured color channels
+        # Create a new image with the blurred color channels
         if alpha:
             img_blur = cv2.merge([red, green, blue, alpha])
         else:
@@ -54,11 +54,19 @@ class Filter_With_Config:
         # Apply the filter multiple times if specified by the timeFiltersApllied value
         for _ in range(self.filter_settings.settings[color_channel_id].timeFiltersApllied):
             if filter_type == "boxBlur":
-                blur = cv2.blur(color_channel_blur, kernel_size)
+                blur = cv2.blur(color_channel_blur, kernel_size, borderType=cv2.BORDER_REFLECT_101)
                 color_channel_blur = blur
+            
             elif filter_type == "gauss":
-                blur = cv2.GaussianBlur(color_channel_blur, kernel_size, self.filter_settings.settings[color_channel_id].sigma)
+                blur = cv2.GaussianBlur(
+                    color_channel_blur,
+                    kernel_size,
+                    self.filter_settings.settings[color_channel_id].sigma,
+                    self.filter_settings.settings[color_channel_id].sigma2,
+                    borderType=cv2.BORDER_REFLECT_101
+                    )
                 color_channel_blur = blur
+            
             else :
                 raise ValueError(f"Unknown filter type: {filter_type}")
         

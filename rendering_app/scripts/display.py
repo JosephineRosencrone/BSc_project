@@ -2,7 +2,6 @@ import cv2
 import time
 import numpy as np
 
-
 def display_video(video_path, original_size, fps, window_name="Rendered video"):
     cap = cv2.VideoCapture(video_path, cv2.CAP_FFMPEG)
     if not cap.isOpened():

@@ -51,11 +51,3 @@ class FilterSettings:
         # Parse the JSON string into a Python dictionary
         json_data = json.loads(json_string)
         return FilterSettings.from_dict(json_data)
-
-
-# ___________ Test for developers ___________
-if __name__ == "__main__":
-    filter_settings = FilterSettings.import_config(
-        file_path=r"C:\Users\josep\Desktop\config.txt"
-    )
-    print(filter_settings.settings)

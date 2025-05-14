@@ -4,7 +4,8 @@ An application for applying a RGB color filter to video.
 
 ## Background
 
-This app has been developed as part of my Bachelor project at the Technical University of Denmark.
+
+This program has been developed as part of my Bachelor project at the Technical University of Denmark. It takes basis in the developed programs from Victor Ibs Larsen's Master's thesis, found here: [VictorIbs1307] (https://github.com/VictorIbs1307/master-thesis-python-repo)
 
 ## Installation
 
@@ -29,6 +30,6 @@ python -m rendering_app
 pytest
 ```
 
-## Authors
+## Author
 
 Josephine Rosencrone Johnsen [@JosephineRosencrone] (https://github.com/JosephineRosencrone)

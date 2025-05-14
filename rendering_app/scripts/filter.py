@@ -11,20 +11,20 @@ class Filter_With_Config:
     def apply_to_image(self, img, nonBlurRadius=0):
         # Split color channels
         if img.shape[-1] == 4:
-            red, green, blue, alpha = cv2.split(img) # RGBA channels
-            alpha = True
+            blue, green, red, alpha = cv2.split(img)  # BGRA channels in OpenCV
+            has_alpha = True
         else:
-            blue, green, red = cv2.split(img) # BGR channels
-            alpha = False
+            blue, green, red = cv2.split(img)  # BGR channels
+            has_alpha = False
 
         # Blur the color channel
-        red = self.blur_color_channel(red, 2, nonBlurRadius)
+        red = self.blur_color_channel(red, 0, nonBlurRadius)
         green = self.blur_color_channel(green, 1, nonBlurRadius)
-        blue = self.blur_color_channel(blue, 0, nonBlurRadius)
+        blue = self.blur_color_channel(blue, 2, nonBlurRadius)
 
         # Create a new image with the blurred color channels
-        if alpha:
-            img_blur = cv2.merge([red, green, blue, alpha])
+        if has_alpha:
+            img_blur = cv2.merge([blue, green, red, alpha])  # Preserve BGR order
         else:
             img_blur = cv2.merge([blue, green, red])
 
@@ -33,12 +33,12 @@ class Filter_With_Config:
     def blur_color_channel(self, color_channel_data, color_channel_id, radius):
         color_channel_blur = color_channel_data
 
-        """""
-        # If sigma is 0 don't apply filter
-        if self.filter_settings.settings[color_channel_id].sigma == 0:
-            return color_channel_data
-        """""
         
+        # If timesFiltersApllied is 0, return the original image
+        if self.filter_settings.settings[color_channel_id].timeFiltersApllied == 0:
+            return color_channel_data
+        
+
         # Find filter type
         filter_type = self.filter_settings.settings[color_channel_id].filterType
         

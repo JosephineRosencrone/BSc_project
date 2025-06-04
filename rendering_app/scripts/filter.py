@@ -10,35 +10,25 @@ class Filter_With_Config:
 
     def apply_to_image(self, img, nonBlurRadius=0):
         # Split color channels
-        if img.shape[-1] == 4:
-            blue, green, red, alpha = cv2.split(img)  # BGRA channels in OpenCV
-            has_alpha = True
-        else:
-            blue, green, red = cv2.split(img)  # BGR channels
-            has_alpha = False
-
+        blue, green, red = cv2.split(img) 
+        
         # Blur the color channel
         red = self.blur_color_channel(red, 0, nonBlurRadius)
         green = self.blur_color_channel(green, 1, nonBlurRadius)
         blue = self.blur_color_channel(blue, 2, nonBlurRadius)
 
         # Create a new image with the blurred color channels
-        if has_alpha:
-            img_blur = cv2.merge([blue, green, red, alpha])  # Preserve BGR order
-        else:
-            img_blur = cv2.merge([blue, green, red])
+        img_blur = cv2.merge([blue, green, red])
 
         return img_blur
 
     def blur_color_channel(self, color_channel_data, color_channel_id, radius):
         color_channel_blur = color_channel_data
 
-        
         # If timesFiltersApllied is 0, return the original image
         if self.filter_settings.settings[color_channel_id].timeFiltersApllied == 0:
             return color_channel_data
         
-
         # Find filter type
         filter_type = self.filter_settings.settings[color_channel_id].filterType
         
@@ -54,7 +44,7 @@ class Filter_With_Config:
         # Apply the filter multiple times if specified by the timeFiltersApllied value
         for _ in range(self.filter_settings.settings[color_channel_id].timeFiltersApllied):
             if filter_type == "boxBlur":
-                blur = cv2.blur(color_channel_blur, kernel_size, borderType=cv2.BORDER_REFLECT_101)
+                blur = cv2.blur(color_channel_blur, kernel_size)
                 color_channel_blur = blur
             
             elif filter_type == "gauss":
@@ -62,8 +52,7 @@ class Filter_With_Config:
                     color_channel_blur,
                     kernel_size,
                     self.filter_settings.settings[color_channel_id].sigma,
-                    self.filter_settings.settings[color_channel_id].sigma2,
-                    borderType=cv2.BORDER_REFLECT_101
+                    self.filter_settings.settings[color_channel_id].sigma2
                     )
                 color_channel_blur = blur
             

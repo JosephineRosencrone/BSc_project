@@ -1,4 +1,3 @@
-import time
 from tkinter import Tk, filedialog
 import cv2
 import numpy as np

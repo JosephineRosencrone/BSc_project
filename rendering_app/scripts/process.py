@@ -11,8 +11,8 @@ def process_video(input_path, output_path, filter_func):
     frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     fps = cap.get(cv2.CAP_PROP_FPS)
-
     frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    
     total_seconds = int(frame_count / fps)
     minutes, seconds = divmod(total_seconds, 60)
     print(f"Video resolution: {frame_width}x{frame_height}, "
@@ -20,7 +20,9 @@ def process_video(input_path, output_path, filter_func):
 
     print("Processing video...")
     start_time = time.time()
-    writer = None
+    
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    writer = cv2.VideoWriter(output_path, fourcc, fps, (frame_width, frame_height))
 
     try:
         while cap.isOpened():
@@ -34,10 +36,6 @@ def process_video(input_path, output_path, filter_func):
                 print(f"Error applying filter: {e}")
                 continue
 
-            if writer is None:
-                fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-                writer = cv2.VideoWriter(output_path, fourcc, fps, (frame_width, frame_height))
-
             writer.write(filtered_frame)
 
     finally:
@@ -45,7 +43,6 @@ def process_video(input_path, output_path, filter_func):
         if writer:
             writer.release()
 
-    processing_time = time.time() - start_time
-    print(f"Processing complete! Video rendered in {processing_time:.2f} seconds")
+    print(f"Processing complete! Video rendered in {time.time() - start_time:.2f} seconds")
 
     return output_path, (frame_width, frame_height), fps

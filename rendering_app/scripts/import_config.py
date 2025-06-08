@@ -2,7 +2,7 @@ import json
 from dataclasses import dataclass
 from typing import Any, List
 
-
+# Credit: Victor Ibs Larsen
 @dataclass
 class KernelSetting:
     name: str
@@ -34,6 +34,16 @@ class KernelSetting:
 
 
 @dataclass
+class PreprocessedSettings:
+    type: str
+    kernel: tuple
+    sigma: float
+    sigma2: float
+    iterations: int
+    sharpen: bool
+
+# Credit: Victor Ibs Larsen
+@dataclass
 class FilterSettings:
     settings: List[KernelSetting]
 
@@ -51,3 +61,22 @@ class FilterSettings:
         # Parse the JSON string into a Python dictionary
         json_data = json.loads(json_string)
         return FilterSettings.from_dict(json_data)
+
+
+    # Preprocess settings for filter
+    @property
+    def preprocess_settings(self) -> List[PreprocessedSettings]:
+        preprocessed = []
+        for s in self.settings:
+            kernel = (s.kernelSize, s.kernelSize)
+            if s.filterType == "gauss":
+                kernel = tuple(k if k % 2 == 1 else k + 1 for k in kernel)
+            preprocessed.append(PreprocessedSettings(
+                type=s.filterType,
+                kernel=kernel,
+                sigma=s.sigma,
+                sigma2=s.sigma2,
+                iterations=s.timeFiltersApllied,
+                sharpen=s.blurOrSharpenCheckbox
+            ))
+        return preprocessed

@@ -4,7 +4,7 @@ import numpy as np
 
 from rendering_app.scripts.filter import Filter_With_Config
 from rendering_app.scripts.import_config import FilterSettings
-from rendering_app.scripts.process import process_video
+from rendering_app.scripts.vid_process import process_video
 from rendering_app.scripts.display import display_video
 from rendering_app.scripts.output import save_output_video
 
@@ -31,7 +31,7 @@ class Video_render:
         
         # Load filter settings from config file
         filter_settings = FilterSettings.import_config(file_path)
-        self.filter = Filter_With_Config(filter_settings=filter_settings)
+        self.filter = Filter_With_Config(settings=filter_settings.preprocess_settings)
 
     def run(self):
         # LOAD AND PROCESS VIDEO

@@ -1,4 +1,4 @@
-from rendering_app.scripts.process import process_video
+from rendering_app.scripts.vid_process import process_video
 
 # Check errors when loading fails
 class TestProcess:

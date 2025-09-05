@@ -7,6 +7,7 @@ from rendering_app.scripts.import_config import FilterSettings
 from rendering_app.scripts.vid_process import process_video
 from rendering_app.scripts.display import display_video
 from rendering_app.scripts.output import save_output_video
+from rendering_app.scripts.realtime import realtime
 
 
 class Video_render:
@@ -32,23 +33,38 @@ class Video_render:
         # Load filter settings from config file
         filter_settings = FilterSettings.import_config(file_path)
         self.filter = Filter_With_Config(settings=filter_settings.preprocess_settings)
+        
+        # NON FILTERED CENTER
+        try:
+            self.nonFilteredRadius = int(input("Enter pixel radius for non-filtered center region (0 to disable): "))
+        except ValueError:
+            self.nonFilteredRadius = 0
+        
+    def filter_area(self, img):
+        return self.filter.apply_to_image(img, nonFilteredRadius=self.nonFilteredRadius)
+
 
     def run(self):
+        # Ask user if they want real-time playback
+        play_realtime = input("Play video in real-time? (y/n): ").strip().lower()
+        if play_realtime == "y":
+            realtime(self.video_path, self.filter_area)
+            return
+        
         # LOAD AND PROCESS VIDEO
         output_path, resolution, fps = process_video(
             self.video_path,
             "temp_output.mp4",
-            self.filter.apply_to_image
+            self.filter_area
         )
         if output_path is None:
             print("Processing failed.")
             return
         
-        
         # DISPLAY VIDEO
         display_output = input("Display rendered video? (y/n): ").strip().lower()
         if display_output == "y":
-            display_video(output_path, resolution, fps)
+            display_video(self.video_path, output_path, resolution, fps)
         else:
             print("Video not displayed.")
 

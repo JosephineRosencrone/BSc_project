@@ -2,40 +2,45 @@ import cv2
 import time
 import numpy as np
 
-def display_video(video_path, original_size, fps, window_name="Rendered video"):
-    cap = cv2.VideoCapture(video_path, cv2.CAP_FFMPEG)
-    if not cap.isOpened():
+def display_video(original_path, filtered_path, original_size, fps):
+    cap_og = cv2.VideoCapture(original_path, cv2.CAP_FFMPEG)
+    cap_filt = cv2.VideoCapture(filtered_path, cv2.CAP_FFMPEG)
+    if not cap_og.isOpened() or not cap_filt.isOpened():
         print("Error: Could not open video for display.")
         return
 
-    cv2.namedWindow(window_name)
-
     # Calculate display size
-    target_size = np.array([1280, 720])
-    scale = np.min(target_size / np.array(original_size))
-    display_size = (np.array(original_size) * scale).astype(int)
-    display_width, display_height = display_size
+    display_width = 750
+    scale = display_width / original_size[0]
+    display_height = int(original_size[1] * scale)
 
     frame_duration = 1 / fps
 
-    print("Now displaying the processed video. Press 'q' to quit.")
+    print("Displaying the filtered video. Press 'q' to quit.")
 
-    while cap.isOpened():
-        frame_start = time.time()
+    while True:
+        start_time = time.time()
 
-        ret, frame = cap.read()
-        if not ret:
+        ret1, frame1 = cap_og.read()
+        ret2, frame2 = cap_filt.read()
+        if not ret1 or not ret2:
             break
 
-        display_frame = cv2.resize(frame, (display_width, display_height), interpolation=cv2.INTER_LINEAR)
-        cv2.imshow(window_name, display_frame)
+        original_frame = cv2.resize(frame1, (display_width, display_height), interpolation=cv2.INTER_AREA)
+        filtered_frame = cv2.resize(frame2, (display_width, display_height), interpolation=cv2.INTER_AREA)
+        
+        # Concatenate them side by side
+        combined_frame = np.hstack((original_frame, filtered_frame))
+        
+        cv2.imshow("Original | Filtered", combined_frame)
 
-        elapsed = time.time() - frame_start
+        elapsed = time.time() - start_time
         wait_time_ms = max(1, int(round((frame_duration - elapsed) * 1000)))
 
         if cv2.waitKey(wait_time_ms) & 0xFF == ord("q"):
             print("Playback stopped.")
             break
 
-    cap.release()
+    cap_og.release()
+    cap_filt.release()
     cv2.destroyAllWindows()

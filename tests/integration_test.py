@@ -2,7 +2,7 @@ import os
 import tempfile
 from rendering_app.scripts.import_config import FilterSettings
 from rendering_app.scripts.filter import Filter_With_Config
-from rendering_app.scripts.process import process_video
+from rendering_app.scripts.vid_process import process_video
 from moviepy import ColorClip
 
 

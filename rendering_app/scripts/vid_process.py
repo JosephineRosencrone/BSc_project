@@ -6,8 +6,8 @@ import multiprocessing as mp
 from rendering_app.scripts.cap_multiprocess import read_frames, process_frames, write_frames
 
 # Confugration for multiprocessing
-num_workers = 4  # os.cpu_count() - 2
-max_queue = 3
+num_workers = os.cpu_count() - 2
+max_queue = 10
 
 def process_video(input_path, output_path, filter_func):
     # Get video properties using a temporary VideoCapture instance
@@ -28,7 +28,7 @@ def process_video(input_path, output_path, filter_func):
     
     # Create multiprocessing queues for frame input and processed output
     frame_queue = mp.Queue(maxsize=max_queue)
-    result_queue = mp.Queue()
+    result_queue = mp.Queue(maxsize=30)
 
     # Create processes for reading, processing, and writing
     reader_proc = mp.Process(target=read_frames, args=(input_path, frame_queue, num_workers))

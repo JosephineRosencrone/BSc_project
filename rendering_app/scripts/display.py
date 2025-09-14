@@ -10,7 +10,7 @@ def display_video(original_path, filtered_path, original_size, fps):
         return
 
     # Calculate display size
-    display_width = 750
+    display_width = 950
     scale = display_width / original_size[0]
     display_height = int(original_size[1] * scale)
 

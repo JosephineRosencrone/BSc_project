@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import time
 
-def realtime(video_path, filter_func):
+def realtime(video_path, output_path, filter_func):
     cap = cv2.VideoCapture(video_path)
     if not cap.isOpened():
         print("Error: Could not open video.")
@@ -10,7 +10,12 @@ def realtime(video_path, filter_func):
 
     fps = cap.get(cv2.CAP_PROP_FPS)
     frame_duration = 1 / fps
-    original_size = (int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+    frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    original_size = (frame_width, frame_height)
+
+    fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+    out = cv2.VideoWriter(output_path, fourcc, fps, (frame_width, frame_height))
 
     print("Starting real-time playback. Press 'q' to quit.")
     while cap.isOpened():
@@ -25,9 +30,14 @@ def realtime(video_path, filter_func):
         except Exception as e:
             print(f"Error applying filter: {e}")
             continue
+        
+        # Save filtered frames
+        if filtered_frame.dtype != np.uint8:
+            filtered_frame = cv2.convertScaleAbs(filtered_frame)
+        out.write(filtered_frame)
 
         # Calculate display size
-        display_width = 750
+        display_width = 950
         scale = display_width / original_size[0]
         display_height = int(original_size[1] * scale)
 
@@ -46,4 +56,7 @@ def realtime(video_path, filter_func):
             break
 
     cap.release()
+    out.release()
     cv2.destroyAllWindows()
+    
+    return output_path, original_size, fps
